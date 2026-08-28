@@ -30,11 +30,17 @@ if (isset($_GET['edit'])) {
     }
 }
 
+// Auto generate ID untuk mode tambah
+if (!$is_edit) {
+    $edit_id = generateNextId($conn, 'Dokter', 'Dokter_ID', 'DR');
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id = $_POST['id'];
     $nama_input = $_POST['nama'];
     $poli_id_input = $_POST['poli_id'];
+    $is_edit = isset($_POST['is_edit']) && $_POST['is_edit'] == '1';
     
     if ($is_edit) {
         $update_query = "UPDATE Dokter SET 
@@ -43,6 +49,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         WHERE Dokter_ID = '$id'";
         mysqli_query($conn, $update_query);
     } else {
+        if (empty($id)) {
+            $id = generateNextId($conn, 'Dokter', 'Dokter_ID', 'DR');
+        }
         $insert_query = "INSERT INTO Dokter (Dokter_ID, Nama_Dokter, Poli_ID) 
                         VALUES ('$id', '$nama_input', '$poli_id_input')";
         mysqli_query($conn, $insert_query);
@@ -87,9 +96,10 @@ $poli_result = mysqli_query($conn, $poli_query);
             <h2 class="form-title"><?php echo $is_edit ? '✏️ Edit Data Dokter' : '➕ Tambah Data Dokter'; ?></h2>
             
             <form method="POST" action="">
+                <input type="hidden" name="is_edit" value="<?php echo $is_edit ? '1' : '0'; ?>">
                 <div class="form-group">
-                    <label>📋 Dokter_ID</label>
-                    <input type="text" name="id" value="<?php echo $edit_id; ?>" <?php echo $is_edit ? 'readonly' : ''; ?> placeholder="Masukkan ID dokter" required>
+                    <label>📋 Dokter_ID (Otomatis)</label>
+                    <input type="text" name="id" value="<?php echo $edit_id; ?>" readonly style="background:#f0f0f0;" required>
                 </div>
                 <div class="form-group">
                     <label>👨‍⚕️ Nama Dokter</label>
@@ -134,7 +144,7 @@ $poli_result = mysqli_query($conn, $poli_query);
                             <tr>
                                 <td><strong><?php echo $row['Dokter_ID']; ?></strong></td>
                                 <td><?php echo $row['Nama_Dokter']; ?></td>
-                                <td><span class="badge"><?php echo $row['Nama_Poli']; ?></span></td>
+                                <td><?php echo $row['Nama_Poli']; ?></td>
                                 <td>
                                     <a href="form_dokter.php?edit=<?php echo $row['Dokter_ID']; ?>" class="action-btn btn-warning">✏️ Edit</a>
                                     <a href="form_dokter.php?delete=<?php echo $row['Dokter_ID']; ?>" class="action-btn btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');">🗑️ Hapus</a>

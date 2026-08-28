@@ -51,6 +51,11 @@ if (isset($_GET['edit'])) {
     }
 }
 
+// Auto generate No_Transaksi untuk mode tambah
+if (!$is_edit) {
+    $no_transaksi = generateNextId($conn, 'Berobat', 'No_Transaksi', 'TR');
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $no_transaksi = $_POST['no_transaksi'];
@@ -61,9 +66,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $dokter_id = $_POST['dokter_id'];
     $keluhan_input = $_POST['keluhan'];
     $biaya_adm_input = $_POST['biaya_adm'];
+    $is_edit = isset($_POST['is_edit']) && $_POST['is_edit'] == '1';
     
-    // Format date
-    $tanggal_berobat = $tahun_input . '-' . $bulan . '-' . $tanggal;
+    // Format date (YYYY-MM-DD)
+    $tanggal_berobat = sprintf('%04d-%02d-%02d', (int)$tahun_input, (int)$bulan, (int)$tanggal);
     
     if ($is_edit) {
         // Update existing record
@@ -76,6 +82,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         WHERE No_Transaksi = '$no_transaksi'";
         mysqli_query($conn, $update_query);
     } else {
+        // Generate ulang jika kosong
+        if (empty($no_transaksi)) {
+            $no_transaksi = generateNextId($conn, 'Berobat', 'No_Transaksi', 'TR');
+        }
         // Insert new record
         $insert_query = "INSERT INTO Berobat (No_Transaksi, PasienKlinik_ID, Tanggal_Berobat, Dokter_ID, Keluhan_Pasien, Biaya_Adm) 
                         VALUES ('$no_transaksi', '$pasien_id', '$tanggal_berobat', '$dokter_id', '$keluhan_input', '$biaya_adm_input')";
@@ -131,9 +141,10 @@ $dokter_result = mysqli_query($conn, $dokter_query);
             <h2 class="form-title"><?php echo $is_edit ? '✏️ Edit Data Berobat' : '➕ Tambah Data Berobat'; ?></h2>
             
             <form method="POST" action="">
+                <input type="hidden" name="is_edit" value="<?php echo $is_edit ? '1' : '0'; ?>">
                 <div class="form-group">
-                    <label>📋 No Transaksi</label>
-                    <input type="text" name="no_transaksi" value="<?php echo $no_transaksi; ?>" <?php echo $is_edit ? 'readonly' : ''; ?> placeholder="Masukkan nomor transaksi" required>
+                    <label>📋 No Transaksi (Otomatis)</label>
+                    <input type="text" name="no_transaksi" value="<?php echo $no_transaksi; ?>" readonly style="background:#f0f0f0;" required>
                 </div>
                 
                 <div class="form-group">

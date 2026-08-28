@@ -28,15 +28,24 @@ if (isset($_GET['edit'])) {
     }
 }
 
+// Auto generate ID untuk mode tambah
+if (!$is_edit) {
+    $edit_id = generateNextId($conn, 'Poli', 'Poli_ID', 'PL');
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id = $_POST['id'];
     $nama_input = $_POST['nama'];
+    $is_edit = isset($_POST['is_edit']) && $_POST['is_edit'] == '1';
     
     if ($is_edit) {
         $update_query = "UPDATE Poli SET Nama_Poli = '$nama_input' WHERE Poli_ID = '$id'";
         mysqli_query($conn, $update_query);
     } else {
+        if (empty($id)) {
+            $id = generateNextId($conn, 'Poli', 'Poli_ID', 'PL');
+        }
         $insert_query = "INSERT INTO Poli (Poli_ID, Nama_Poli) VALUES ('$id', '$nama_input')";
         mysqli_query($conn, $insert_query);
     }
@@ -76,9 +85,10 @@ $result = mysqli_query($conn, $query);
             <h2 class="form-title"><?php echo $is_edit ? '✏️ Edit Data Poli' : '➕ Tambah Data Poli'; ?></h2>
             
             <form method="POST" action="">
+                <input type="hidden" name="is_edit" value="<?php echo $is_edit ? '1' : '0'; ?>">
                 <div class="form-group">
-                    <label>📋 Poli_ID</label>
-                    <input type="text" name="id" value="<?php echo $edit_id; ?>" <?php echo $is_edit ? 'readonly' : ''; ?> placeholder="Masukkan ID poli" required>
+                    <label>📋 Poli_ID (Otomatis)</label>
+                    <input type="text" name="id" value="<?php echo $edit_id; ?>" readonly style="background:#f0f0f0;" required>
                 </div>
                 <div class="form-group">
                     <label>🏥 Nama Poli</label>
@@ -109,7 +119,7 @@ $result = mysqli_query($conn, $query);
                             ?>
                             <tr>
                                 <td><strong><?php echo $row['Poli_ID']; ?></strong></td>
-                                <td><span class="badge"><?php echo $row['Nama_Poli']; ?></span></td>
+                                <td><?php echo $row['Nama_Poli']; ?></td>
                                 <td>
                                     <a href="form_poli.php?edit=<?php echo $row['Poli_ID']; ?>" class="action-btn btn-warning">✏️ Edit</a>
                                     <a href="form_poli.php?delete=<?php echo $row['Poli_ID']; ?>" class="action-btn btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');">🗑️ Hapus</a>

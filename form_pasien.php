@@ -34,6 +34,11 @@ if (isset($_GET['edit'])) {
     }
 }
 
+// Auto generate ID untuk mode tambah
+if (!$is_edit) {
+    $edit_id = generateNextId($conn, 'Pasien', 'PasienKlinik_ID', 'PS');
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id = $_POST['id'];
@@ -41,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $tanggal_lahir_input = $_POST['tanggal_lahir'];
     $jenis_kelamin_input = $_POST['jenis_kelamin'];
     $alamat_input = $_POST['alamat'];
+    $is_edit = isset($_POST['is_edit']) && $_POST['is_edit'] == '1';
     
     if ($is_edit) {
         $update_query = "UPDATE Pasien SET 
@@ -51,6 +57,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         WHERE PasienKlinik_ID = '$id'";
         mysqli_query($conn, $update_query);
     } else {
+        // Pastikan ID unik (generate ulang jika bentrok)
+        if (empty($id)) {
+            $id = generateNextId($conn, 'Pasien', 'PasienKlinik_ID', 'PS');
+        }
         $insert_query = "INSERT INTO Pasien (PasienKlinik_ID, Nama_PasienKlinik, Tanggal_LahirPasien, Jenis_KelaminPasien, Alamat_Pasien) 
                         VALUES ('$id', '$nama_input', '$tanggal_lahir_input', '$jenis_kelamin_input', '$alamat_input')";
         mysqli_query($conn, $insert_query);
@@ -98,9 +108,10 @@ function hitungUsia($tanggal_lahir) {
             <h2 class="form-title"><?php echo $is_edit ? '✏️ Edit Data Pasien' : '➕ Tambah Data Pasien'; ?></h2>
             
             <form method="POST" action="">
+                <input type="hidden" name="is_edit" value="<?php echo $is_edit ? '1' : '0'; ?>">
                 <div class="form-group">
-                    <label>📋 PasienKlinik_ID</label>
-                    <input type="text" name="id" value="<?php echo $edit_id; ?>" <?php echo $is_edit ? 'readonly' : ''; ?> placeholder="Masukkan ID pasien" required>
+                    <label>📋 PasienKlinik_ID (Otomatis)</label>
+                    <input type="text" name="id" value="<?php echo $edit_id; ?>" readonly style="background:#f0f0f0;" required>
                 </div>
                 <div class="form-group">
                     <label>👤 Nama Pasien</label>

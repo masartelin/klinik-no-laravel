@@ -1,7 +1,7 @@
 <div class="sidebar">
     <div class="sidebar-header">
-        <h2>🏥 Klinik</h2>
-        <p>Sistem Manajemen</p>
+        <h2>🏥 APLIKASI PENGELOLAAN KLINIK</h2>
+        <p>Grok xAI</p>
     </div>
     
     <div class="menu-section">
